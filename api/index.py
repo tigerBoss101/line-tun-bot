@@ -20,7 +20,7 @@ from linebot.v3.webhooks import (
 
 import os
 
-from scrape_news import scrape_news
+import supabase
 
 app = Flask(__name__)
 
@@ -56,12 +56,12 @@ def handle_message(event: MessageEvent):
     if event.message.text != "!tun":
         return
 
-    try:
-        res = scrape_news()
-        titles, links = res
-        message = "\n\n".join(title + "\n" + link for title, link in zip(titles, links))
-    except ValueError:
-        message = "ขณะนี้ระบบการอ่านข่าวขัดข้องเล็กน้อย กรุณาลองอีกครั้ง"
+    db_url = os.environ.get("SUPABASE_URL")
+    db_key = os.environ.get("SUPABASE_PUBLISHABLE_KEY")
+    db = supabase.create_client(db_url, db_key)
+
+    response = db.table("latest_news").select("title, link").execute()
+    message = "\n\n".join(row["title"] + "\n" + row["link"] for row in response.data)
 
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
