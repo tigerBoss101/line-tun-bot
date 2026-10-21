@@ -1,8 +1,12 @@
-from curl_cffi import requests
 from bs4 import BeautifulSoup
+from curl_cffi import requests
+import os
+import supabase
 import time
 
 def scrape_news():
+
+    # Connect to TUN site
 
     url = "https://www.tun.ac.th/"
 
@@ -14,11 +18,28 @@ def scrape_news():
     else:
         raise ValueError("All forbidden")
 
+    # Scrape News
+
     soup = BeautifulSoup(response.text, "html.parser")
     news_anchors = soup.find(class_="news_index").find_all("a")
-    news_texts = [str(news_anchor.string) for news_anchor in news_anchors]
+    news_titles = [str(news_anchor.string) for news_anchor in news_anchors]
     news_links = [url + news_anchor["href"] for news_anchor in news_anchors]
-    return news_texts, news_links
+
+    # Update database
+
+    if os.path.exists(".env.local"):
+        from dotenv import load_dotenv
+        load_dotenv(".env.local")
+
+    db_url = os.environ.get("SUPABASE_URL")
+    db_key = os.environ.get("SUPABASE_SECRET_KEY")
+    db = supabase.create_client(db_url, db_key)
+
+    news_data = [{"id": i, "title": title, "link": link} for i, (title, link) in enumerate(zip(news_titles, news_links))]
+
+    response = db.table("latest_news").upsert(news_data).execute()
+
+    return response
 
 if __name__ == "__main__":
     print(scrape_news())
