@@ -1,5 +1,4 @@
 env/
 .vercel
 .env*
-*.ovpn
 *.sh
