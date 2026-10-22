@@ -4,6 +4,7 @@ on: [push]
 jobs:
   Scrape-And-Push:
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
