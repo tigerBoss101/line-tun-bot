@@ -1,0 +1,32 @@
+name: TUN News Scraping
+run-name: Scraping news...
+on: [push]
+jobs:
+  Scrape-And-Push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Python
+        uses: actions/setup-python@v7.1.0
+        with:
+          python-version: '3.13'
+
+      - name: Install Dependencies
+        run: pip install supabase curl-cffi beautifulsoup4
+
+      - name: Install OpenVPN
+        run: sudo apt update && sudo apt install -y openvpn openvpn-systemd-resolved
+      
+      - name: Connect to Thai OpenVPN
+        uses: kota65535/github-openvpn-connect-action@v3.1.0
+        with:
+          config_file: .github/workflows/thai_vpn.ovpn
+      
+      - name: Run scraping script
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run:
+          python3 api/scrape_news.py
