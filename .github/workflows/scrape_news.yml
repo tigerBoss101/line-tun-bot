@@ -1,10 +1,9 @@
 name: TUN News Scraping
 run-name: Scraping news...
 on:
-  schedule:
-    - cron: '1/5 * * * *'
-      timezone: 'Asia/Singapore'
   workflow_dispatch: {}
+  repository_dispatch:
+    types: [cron_trigger]
 jobs:
   Scrape-And-Push:
     runs-on: ubuntu-latest
