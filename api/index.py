@@ -20,6 +20,8 @@ from linebot.v3.webhooks import (
 
 import os
 
+import requests
+
 import supabase
 
 app = Flask(__name__)
@@ -30,7 +32,14 @@ if os.path.exists(".env.local"):
 
 configuration = Configuration(access_token=os.getenv("CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
+cron_token = os.getenv("CRON_JOB_TOKEN")
+github_token = os.getenv("GITHUB_DISPATCH_TOKEN")
 
+# TODO: Create an endpoint for cron requests
+# TODO: Make database for user & group ids
+# TODO: Notify the ids when news data change
+# TODO: Have retries for OpenVPN connection
+# TODO (optional): Make a system (like a cache) for read operations
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -47,6 +56,27 @@ def callback():
     except InvalidSignatureError:
         app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
         abort(400)
+
+    return 'OK'
+
+
+@app.route("/cron", methods=['GET'])
+def cron():
+    cron_secret_header = request.headers['X-Cron-Secret']
+
+    if cron_secret_header != cron_token:
+        abort(403)
+
+    data = {"event_type": "cron_trigger"}
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "Bearer " + github_token,
+        "X-GitHub-Api-Version": "2026-03-10",
+    }
+    response = requests.post("https://api.github.com/repos/tigerboss101/line-tun-bot/dispatches", data=data, headers=headers)
+
+    if response.status_code != 204:
+        abort(response.status_code)
 
     return 'OK'
 
