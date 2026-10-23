@@ -73,7 +73,7 @@ def cron():
         "Authorization": "Bearer " + github_token,
         "X-GitHub-Api-Version": "2026-03-10",
     }
-    response = requests.post("https://api.github.com/repos/tigerboss101/line-tun-bot/dispatches", data=data, headers=headers)
+    response = requests.post("https://api.github.com/repos/tigerboss101/line-tun-bot/dispatches", json=data, headers=headers)
 
     if response.status_code != 204:
         abort(response.status_code)
