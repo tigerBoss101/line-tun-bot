@@ -1,3 +1,7 @@
+import os
+import requests
+import supabase
+
 from flask import Flask, request, abort
 
 from linebot.v3 import (
@@ -15,14 +19,10 @@ from linebot.v3.messaging import (
 )
 from linebot.v3.webhooks import (
     MessageEvent,
-    TextMessageContent
+    FollowEvent,
+    UnfollowEvent,
+    TextMessageContent,
 )
-
-import os
-
-import requests
-
-import supabase
 
 app = Flask(__name__)
 
@@ -35,7 +35,11 @@ handler = WebhookHandler(os.getenv("CHANNEL_SECRET"))
 cron_token = os.getenv("CRON_JOB_TOKEN")
 github_token = os.getenv("GITHUB_DISPATCH_TOKEN")
 
-# TODO: Create an endpoint for cron requests
+db = supabase.create_client(
+    os.environ.get("SUPABASE_URL"),
+    os.environ.get("SUPABASE_SECRET_KEY")
+)
+
 # TODO: Make database for user & group ids
 # TODO: Notify the ids when news data change
 # TODO: Have retries for OpenVPN connection
@@ -86,10 +90,6 @@ def handle_message(event: MessageEvent):
     if event.message.text != "!tun":
         return
 
-    db_url = os.environ.get("SUPABASE_URL")
-    db_key = os.environ.get("SUPABASE_PUBLISHABLE_KEY")
-    db = supabase.create_client(db_url, db_key)
-
     response = db.table("latest_news").select("title, link").execute()
     message = "\n\n".join(row["title"] + "\n" + row["link"] for row in response.data)
 
@@ -101,6 +101,24 @@ def handle_message(event: MessageEvent):
                 messages=[TextMessage(text=message)]
             )
         )
+
+
+@handler.add(FollowEvent)
+def handle_follow(event: FollowEvent):
+    user_id = event.source.user_id
+
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        name = line_bot_api.get_profile(user_id).display_name
+
+    db.table("users").insert({"user_id": user_id, "name": name}).execute()
+
+
+@handler.add(UnfollowEvent)
+def handle_unfollow(event: UnfollowEvent):
+    user_id = event.source.user_id
+
+    db.table("users").delete().eq("user_id", user_id).execute()
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5001, debug=True)

@@ -2,3 +2,4 @@ env/
 .vercel
 .env*
 *.sh
+users.db
