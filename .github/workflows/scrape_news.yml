@@ -29,10 +29,7 @@ jobs:
           cat .github/workflows/thai_vpn.ovpn
 
       - name: Connect to Thai OpenVPN
-        run: |
-          sudo openvpn --config .github/workflows/thai_vpn.ovpn --log openvpn.log --daemon
-          sleep 10
-          sudo cat openvpn.log
+        uses: kota65535/github-openvpn-connect-action@v3.1.0
       
       - name: Run scraping script
         env:
