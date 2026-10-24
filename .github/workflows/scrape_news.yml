@@ -27,9 +27,7 @@ jobs:
         run: curl -fsSL https://www.vpngate.net/api/iphone/ | grep ,TH, | head -n 1 2>/dev/null | cut -d ',' -f15 | base64 -d > .github/workflows/thai_vpn.ovpn
 
       - name: Connect to Thai OpenVPN
-        uses: kota65535/github-openvpn-connect-action@v3.1.0
-        with:
-          config_file: .github/workflows/thai_vpn.ovpn
+        run: sudo openvpn --config .github/workflows/thai_vpn.ovpn
       
       - name: Run scraping script
         env:
