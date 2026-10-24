@@ -15,7 +15,8 @@ from linebot.v3.messaging import (
     ApiClient,
     MessagingApi,
     ReplyMessageRequest,
-    TextMessage
+    PushMessageRequest,
+    TextMessage,
 )
 from linebot.v3.webhooks import (
     MessageEvent,
@@ -42,7 +43,6 @@ db = supabase.create_client(
     os.environ.get("SUPABASE_SECRET_KEY")
 )
 
-# TODO: Add functionality for groups too
 # TODO: Notify the ids when news data change
 # TODO: Have retries for OpenVPN connection
 # TODO (optional): Make a system (like a cache) for read operations
@@ -85,6 +85,24 @@ def cron():
         abort(response.status_code)
 
     return 'OK'
+
+
+@app.route("/notify", methods=['GET'])
+def notify():
+    last_news = db.table("latest_news").select("title, link").limit(1).execute().data[0]
+    message = last_news["title"] + "\n" + last_news["link"]
+
+    rows = db.table("users").select("user_id").execute().data
+    for row in rows:
+        user_id = row["user_id"]
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            line_bot_api.push_message(
+                PushMessageRequest(
+                    to=user_id,
+                    messages=[TextMessage(text=message)]
+                )
+            )
 
 
 @handler.add(MessageEvent, message=TextMessageContent)

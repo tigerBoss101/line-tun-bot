@@ -25,7 +25,7 @@ def scrape_news():
     news_titles = [str(news_anchor.string) for news_anchor in news_anchors]
     news_links = [url + news_anchor["href"] for news_anchor in news_anchors]
 
-    # Update database
+    # DB init
 
     if os.path.exists(".env.local"):
         from dotenv import load_dotenv
@@ -35,9 +35,19 @@ def scrape_news():
     db_key = os.environ.get("SUPABASE_SECRET_KEY")
     db = supabase.create_client(db_url, db_key)
 
-    news_data = [{"id": i, "title": title, "link": link} for i, (title, link) in enumerate(zip(news_titles, news_links))]
+    # Check if news changed
 
+    latest_link = db.table("latest_news").select("link").limit(1).execute().data[0]["link"]
+    changed = latest_link != news_links[0]
+
+    # Update news
+
+    news_data = [{"id": i, "title": title, "link": link} for i, (title, link) in enumerate(zip(news_titles, news_links))]
     response = db.table("latest_news").upsert(news_data).execute()
+
+    # Notify users if news changed
+    if changed:
+        requests.get("https://line-tun-bot.vercel.app/notify")
 
     return response
 

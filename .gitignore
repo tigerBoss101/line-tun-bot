@@ -3,3 +3,4 @@ env/
 .env*
 *.sh
 users.db
+api/__pycache__/*
