@@ -21,6 +21,8 @@ from linebot.v3.webhooks import (
     MessageEvent,
     FollowEvent,
     UnfollowEvent,
+    JoinEvent,
+    LeaveEvent,
     TextMessageContent,
 )
 
@@ -40,7 +42,7 @@ db = supabase.create_client(
     os.environ.get("SUPABASE_SECRET_KEY")
 )
 
-# TODO: Make database for user & group ids
+# TODO: Add functionality for groups too
 # TODO: Notify the ids when news data change
 # TODO: Have retries for OpenVPN connection
 # TODO (optional): Make a system (like a cache) for read operations
@@ -119,6 +121,25 @@ def handle_unfollow(event: UnfollowEvent):
     user_id = event.source.user_id
 
     db.table("users").delete().eq("user_id", user_id).execute()
+
+
+@handler.add(JoinEvent)
+def handle_join(event: JoinEvent):
+    group_id = event.source.group_id
+
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        name = line_bot_api.get_group_summary(group_id).group_name
+
+    db.table("users").insert({"user_id": group_id, "name": name}).execute()
+
+
+@handler.add(LeaveEvent)
+def handle_unfollow(event: LeaveEvent):
+    group_id = event.source.group_id
+
+    db.table("users").delete().eq("user_id", group_id).execute()
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", port=5001, debug=True)
