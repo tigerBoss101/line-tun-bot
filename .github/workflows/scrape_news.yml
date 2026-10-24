@@ -30,6 +30,8 @@ jobs:
 
       - name: Connect to Thai OpenVPN
         uses: kota65535/github-openvpn-connect-action@v3.1.0
+        with:
+          config-file: .github/workflows/thai_vpn.ovpn
       
       - name: Run scraping script
         env:
