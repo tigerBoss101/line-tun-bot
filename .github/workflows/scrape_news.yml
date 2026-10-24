@@ -18,14 +18,14 @@ jobs:
           python-version: '3.13'
 
       - name: Install Dependencies
-        run: pip install supabase curl-cffi beautifulsoup4
+        run: pip install supabase curl-cffi beautifulsoup4 requests
 
       - name: Install OpenVPN
         run: sudo apt update && sudo apt install -y openvpn openvpn-systemd-resolved
       
       - name: Fetch Thai OpenVPN config file
         run: |
-          curl -fsSL https://www.vpngate.net/api/iphone/ | grep ,TH, | head -n 1 2>/dev/null | cut -d ',' -f15 | base64 -d > .github/workflows/thai_vpn.ovpn
+          python3 api/fetch_ovpn.py > .github/workflows/thai_vpn.ovpn
           cat .github/workflows/thai_vpn.ovpn
 
       - name: Connect to Thai OpenVPN
