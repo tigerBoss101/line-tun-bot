@@ -6,7 +6,7 @@ on:
     types: [cron_trigger]
 jobs:
   Scrape-And-Push:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     environment: Production
     steps:
       - name: Checkout repository
