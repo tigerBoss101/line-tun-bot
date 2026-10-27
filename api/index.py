@@ -43,7 +43,6 @@ db = supabase.create_client(
     os.environ.get("SUPABASE_SECRET_KEY")
 )
 
-# TODO (optional): Make a system (like a cache) for read operations
 
 @app.route("/callback", methods=['POST'])
 def callback():
