@@ -11,7 +11,7 @@ def scrape_news():
     url = "https://www.tun.ac.th/"
 
     for _ in range(10):
-        response = requests.get(url + "mainpage", impersonate="chrome120", timeout=10)
+        response = requests.get(url + "mainpage", impersonate="chrome", timeout=10)
         if response.status_code != 403:
             break
         time.sleep(1)

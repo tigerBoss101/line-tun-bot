@@ -18,20 +18,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install Dependencies
-        run: pip install supabase curl-cffi beautifulsoup4 requests
-
-      - name: Install OpenVPN
-        run: sudo apt update && sudo apt install -y openvpn openvpn-systemd-resolved
-      
-      - name: Fetch Thai OpenVPN config file
-        run: |
-          python3 api/fetch_ovpn.py > .github/workflows/thai_vpn.ovpn
-          cat .github/workflows/thai_vpn.ovpn
-
-      - name: Connect to Thai OpenVPN
-        uses: kota65535/github-openvpn-connect-action@v3.1.0
-        with:
-          config_file: .github/workflows/thai_vpn.ovpn
+        run: pip install supabase curl-cffi beautifulsoup4
       
       - name: Run scraping script
         env:
